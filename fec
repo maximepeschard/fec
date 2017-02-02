@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# Adapted from :
+# http://serverfault.com/questions/183431/get-all-extensions-and-their-respective-file-count-in-a-directory
+
+
+# Check options
+OPTIND=1
+reverse=0
+while getopts ":r" opt; do
+  case $opt in
+    r)
+      reverse=1
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      echo "Usage: fec [-r] path"
+      echo "    -r : reverse sort"
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+# Check args
+if [ ! $# -eq 1 ]; then
+  echo "Too much or too little... ¯\_(ツ)_/¯"
+  echo "Usage: fec [-r] path"
+  echo "    -r : reverse sort"
+  exit 1
+fi
+
+base="find $1 -type f | grep -E '.*\.[a-zA-Z0-9]*$' | sed -e 's/.*\(\.[a-zA-Z0-9]*\)$/\1/' | sort | uniq -c | sort -n"
+pretty='awk '\''{print $2 " " $1}'\'' | column -t'
+if [ $reverse -eq 1 ]; then
+  eval "$base -r | $pretty"
+else
+  eval "$base | $pretty"
+fi
